@@ -3,71 +3,106 @@ var readJson = d3.json(jsonFile);
 
 
 function buildDropdown(){
-    // i = 0
     readJson.then(function(bbData){
         console.log(bbData);
         names = bbData.names;
         names.forEach(function(name){
-            i = 0
             d3.select("#selDataset").selectAll("option")
                 .data(names)
                 .enter()
                 .append("option")
                 .text(name => name)
-                .attr("value", i=>i)
         });
     });
 };
 
-function optionChanged(value){
-    subject = parseInt(value);
-        demographicInfo(subject);
-        buildBarchart(subject);
-        buildBubbleChart(subject);
+function demographicInfo(subjectIndex){
+    readJson.then(function(bbData){
+        var i = subjectIndex; 
+        var metaData = bbData.metadata
+        var demographics = Object.entries(metaData[i]);
+        var demInfo = d3.select("#sample-metadata").selectAll("p").remove();
+    
+        demographics.forEach(function(array){
+            d3.select("#sample-metadata").selectAll("div")
+                .data([array])
+                .enter()
+                .append("p")
+                .html(`<strong>${array[0]}</strong>: ${array[1]}`)
+        });
+    });
+};    
+
+function buildBarchart(subjectIndex){
+    var i = subjectIndex;
+    readJson.then(function(bbData){    
+         var samplesData = bbData.samples;
+                var sampleValues = samplesData[i];
+                var ydata = sampleValues["otu_ids"];
+                var xdata = sampleValues["sample_values"];
+                var hoverData = sampleValues["otu_labels"];
+                ydata = ydata.slice(0,10);
+
+                var trace = {
+                    x: xdata,
+                    y: ydata,
+                    hoverinfo: hoverData,
+                    type: "bar",
+                    orientation: "h",
+                    transforms: [{
+                        type: "sort",
+                        target: "x",
+                        order: "ascending"
+                    }]
+                };
+                
+                barData = [trace]
+
+                var layout = {
+                    margin:{ t:"25"},
+                    height: "500",
+                    yaxis:{
+                        type:"category",
+                        tickprefix: "OTU ",
+                        showtickprefix: 'all'
+                    }
+                };
+
+                Plotly.newPlot("bar", barData, layout);
+    });
 };
 
-// age: 24
-// bbtype: "I"
-// ethnicity: "Caucasian"
-// gender: "F
-// id: 940
-// location: "Beaufort/NC"
-// wfreq: 2
+function buildBubbleChart(subjectIndex){
+    var i = subjectIndex;
+};
 
-function demographicInfo(subject){  
-    readJson.then(function(bbData){    
-        var metaData = bbData.metadata;
-
-        for(i=0; i < metaData.length; i++){
-            var id = metaData[i]["id"];
-            var demographics = Object.entries(metaData[i]);
-            
-            if (subject === id){
-                var demInfo = d3.select("#sample-metadata").selectAll("p");
-                demInfo.remove();
-
-                demographics.forEach(function(array){
-                    d3.select("#sample-metadata").selectAll("div")
-                        .data([array])
-                        .enter()
-                        .append("p")
-                        .html(`<strong>${array[0]}</strong>: ${array[1]}`)
-                });
-            };
+function subjectIdIndex(optionValue){
+    readJson.then(function(bbData){
+        var data = bbData.metadata;
+        console.log(data)
+        for(i=0; i < data.length; i++){
+            var id = data[i]["id"];
+            if (optionValue === id){
+                var subjectIndex = i
+                demographicInfo(subjectIndex);
+                buildBarchart(subjectIndex);
+                buildBubbleChart(subjectIndex);
+            }
         };
     });
 };
-    
-function buildBarchart(){
 
+function init(){
+    readJson.then(function(bbData){    
+        var firstSubject = parseInt(bbData.names[0]);
+        subjectIdIndex(firstSubject);
+    });
 };
 
-function buildBubbleChart(){
-
+function optionChanged(value){
+    var optionValue = parseInt(value);
+    subjectIdIndex(optionValue)
 };
 
 buildDropdown();
-
-
-
-
+init();
