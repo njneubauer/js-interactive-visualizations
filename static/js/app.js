@@ -36,44 +36,70 @@ function demographicInfo(subjectIndex){
 function buildBarchart(subjectIndex){
     var i = subjectIndex;
     readJson.then(function(bbData){    
-         var samplesData = bbData.samples;
-                var sampleValues = samplesData[i];
-                var ydata = sampleValues["otu_ids"];
-                var xdata = sampleValues["sample_values"];
-                var hoverData = sampleValues["otu_labels"];
-                ydata = ydata.slice(0,10);
+        var samplesData = bbData.samples;
+        var sampleValues = samplesData[i];
+        var ydata = sampleValues["otu_ids"];
+        var xdata = sampleValues["sample_values"];
+        var hoverData = sampleValues["otu_labels"];
+        ydata = ydata.slice(0,10);
 
-                var trace = {
-                    x: xdata,
-                    y: ydata,
-                    hoverinfo: hoverData,
-                    type: "bar",
-                    orientation: "h",
-                    transforms: [{
-                        type: "sort",
-                        target: "x",
-                        order: "ascending"
-                    }]
-                };
-                
-                barData = [trace]
+        var trace = {
+            x: xdata,
+            y: ydata,
+            hoverinfo: hoverData,
+            type: "bar",
+            orientation: "h",
+            transforms: [{
+                type: "sort",
+                target: "x",
+                order: "ascending"
+            }]
+        };
+        
+        barData = [trace];
 
-                var layout = {
-                    margin:{ t:"25"},
-                    height: "500",
-                    yaxis:{
-                        type:"category",
-                        tickprefix: "OTU ",
-                        showtickprefix: 'all'
-                    }
-                };
+        var layout = {
+            margin:{ t:"25"},
+            height: "500",
+            yaxis:{
+                type:"category",
+                tickprefix: "OTU ",
+                showtickprefix: 'all'
+            }
+        };
 
-                Plotly.newPlot("bar", barData, layout);
+        
+    Plotly.newPlot("bar", barData, layout);
     });
 };
 
 function buildBubbleChart(subjectIndex){
     var i = subjectIndex;
+    readJson.then(function(bbData){    
+        var samplesData = bbData.samples;
+        var sampleValues = samplesData[i];
+        var xdata = sampleValues["otu_ids"];
+        var ydata = sampleValues["sample_values"];
+        var hoverData = sampleValues["otu_labels"];
+
+        var trace = {
+            x: xdata,
+            y: ydata,
+            mode: 'markers',
+            marker:{
+                size: ydata,
+                color: xdata,
+                colorscale: 'Earth'
+            }
+        };
+        var layout = {
+        
+        };
+
+        var bubbleData = [trace];
+
+        Plotly.newPlot("bubble", bubbleData, layout);
+    });
 };
 
 function subjectIdIndex(optionValue){
