@@ -21,7 +21,8 @@ function demographicInfo(subjectIndex){
         var i = subjectIndex; 
         var metaData = bbData.metadata
         var demographics = Object.entries(metaData[i]);
-        var demInfo = d3.select("#sample-metadata").selectAll("p").remove();
+        // Remove old info
+        d3.select("#sample-metadata").selectAll("p").remove();
     
         demographics.forEach(function(array){
             d3.select("#sample-metadata").selectAll("div")
@@ -33,20 +34,14 @@ function demographicInfo(subjectIndex){
     });
 };    
 
-function buildBarchart(subjectIndex){
-    var i = subjectIndex;
-    readJson.then(function(bbData){    
-        var samplesData = bbData.samples;
-        var sampleValues = samplesData[i];
-        var ydata = sampleValues["otu_ids"];
-        var xdata = sampleValues["sample_values"];
-        var hoverData = sampleValues["otu_labels"];
-        ydata = ydata.slice(0,10);
 
+function buildBarChart(xData, yData, Labels){
+       var yData = yData.slice(0,10);
+        
         var trace = {
-            x: xdata,
-            y: ydata,
-            hoverinfo: hoverData,
+            x: xData,
+            y: yData,
+            text: Labels,
             type: "bar",
             orientation: "h",
             transforms: [{
@@ -68,51 +63,59 @@ function buildBarchart(subjectIndex){
             }
         };
 
-        
     Plotly.newPlot("bar", barData, layout);
-    });
 };
 
-function buildBubbleChart(subjectIndex){
-    var i = subjectIndex;
-    readJson.then(function(bbData){    
-        var samplesData = bbData.samples;
-        var sampleValues = samplesData[i];
-        var xdata = sampleValues["otu_ids"];
-        var ydata = sampleValues["sample_values"];
-        var hoverData = sampleValues["otu_labels"];
-
+function buildBubbleChart(xData,yData,labels){
         var trace = {
-            x: xdata,
-            y: ydata,
+            x: xData,
+            y: yData,
+            text: labels,
             mode: 'markers',
             marker:{
-                size: ydata,
-                color: xdata,
+                size: yData,
+                color: xData,
                 colorscale: 'Earth'
             }
         };
         var layout = {
-        
+            margin:{ t:"25"},
+            xaxis: { title: "OTU ID"}
         };
-
         var bubbleData = [trace];
 
         Plotly.newPlot("bubble", bubbleData, layout);
+};
+
+function dataPoints(subjectIndex){
+    var i = subjectIndex;
+    readJson.then(function(bbData){    
+        var samplesData = bbData.samples;
+        var sampleValues = samplesData[i];
+        var otuIDs = sampleValues["otu_ids"];
+        var samples = sampleValues["sample_values"];
+        var otuLabels = sampleValues["otu_labels"];
+    
+        var hoverLabels = [];
+        otuLabels.forEach(function(array){
+            var br = array.replace(/;/gi,", <br> ");
+            hoverLabels.push(br);
+        });
+        buildBarChart(samples, otuIDs, hoverLabels);
+        buildBubbleChart(otuIDs, samples, hoverLabels);
     });
 };
 
 function subjectIdIndex(optionValue){
     readJson.then(function(bbData){
         var data = bbData.metadata;
-        console.log(data)
+
         for(i=0; i < data.length; i++){
             var id = data[i]["id"];
             if (optionValue === id){
                 var subjectIndex = i
+                dataPoints(subjectIndex);
                 demographicInfo(subjectIndex);
-                buildBarchart(subjectIndex);
-                buildBubbleChart(subjectIndex);
             }
         };
     });
