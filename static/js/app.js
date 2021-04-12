@@ -1,5 +1,5 @@
-var jsonFile = "../samples.json";
-var readJson = d3.json(jsonFile);
+var url = "https://njneubauer.github.io/js-interactive-visualizations/samples.json";
+var readJson = d3.json(url);
 
 
 function buildDropdown(){
